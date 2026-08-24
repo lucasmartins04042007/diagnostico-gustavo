@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Gratuito — Gustavo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --bg-card:#131313;
+    --green:#17a653;
+    --green-dim:#0f7a3d;
+    --green-tint:#0e2417;
+    --text:#f5f5f0;
+    --muted:#7a7a76;
+    --border:#232320;
+    --danger:#ff5d5d;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html,body{
+    min-height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+  }
+
+  body{
+    display:flex;
+    justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .app{
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ---------- progresso ---------- */
+  .progress{
+    display:flex;
+    gap:6px;
+    padding:24px 24px 0 24px;
+  }
+  .progress .seg{
+    flex:1;
+    height:3px;
+    border-radius:3px;
+    background:var(--border);
+    overflow:hidden;
+  }
+  .progress .seg i{
+    display:block;
+    height:100%;
+    width:0%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    transition:width .35s ease;
+  }
+  .progress .seg.done i{width:100%;}
+
+  /* ---------- header ---------- */
+  .header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:18px 24px 0 24px;
+    min-height:34px;
+  }
+  .header.hidden{visibility:hidden;}
+  .avatar{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #6fe89a, var(--green));
+    color:#0a0a0a;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .avatar img{width:100%; height:100%; object-fit:cover;}
+  .header-name{
+    font-size:13px;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+  .header-name b{color:var(--text); font-weight:600;}
+
+  /* ---------- stage ---------- */
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:32px 24px;
+  }
+
+  .screen{
+    opacity:0;
+    transform:translateY(12px);
+    transition:opacity .28s ease, transform .32s cubic-bezier(.2,.8,.2,1);
+  }
+  .screen.show{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* ---------- bubble ---------- */
+  .bubble{
+    display:inline-block;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:4px 18px 18px 18px;
+    padding:16px 18px;
+    margin-bottom:26px;
+    max-width:94%;
+  }
+  .bubble p{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:22px;
+    line-height:1.32;
+    letter-spacing:-0.01em;
+  }
+  .bubble .sub{
+    font-family:'Inter',sans-serif;
+    font-weight:400;
+    font-size:13.5px;
+    color:var(--muted);
+    margin-top:8px;
+    line-height:1.5;
+  }
+
+  /* ---------- inputs ---------- */
+  input[type="text"], input[type="tel"]{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:2px solid var(--border);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:24px;
+    font-weight:500;
+    padding:10px 2px 14px 2px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  input::placeholder{color:#3d3d3a;}
+  input:focus{border-color:var(--green);}
+
+  /* ---------- opções ---------- */
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .opt{
+    text-align:left;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:500;
+    padding:15px 16px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .opt:hover{border-color:var(--green-dim);}
+  .opt:active{transform:scale(.985);}
+  .opt.selected{
+    border-color:var(--green);
+    background:var(--green-tint);
+    box-shadow:0 0 0 1px var(--green) inset;
+  }
+
+  /* ---------- footer / CTA ---------- */
+  .footer{
+    padding:18px 24px 30px 24px;
+  }
+  .btn{
+    width:100%;
+    background:var(--green);
+    color:#0a0a0a;
+    border:none;
+    border-radius:14px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    padding:16px;
+    cursor:pointer;
+    box-shadow:0 0 24px rgba(23,166,83,.20);
+    transition:transform .12s ease, box-shadow .2s ease, opacity .2s ease;
+  }
+  .btn:hover{box-shadow:0 0 32px rgba(23,166,83,.34);}
+  .btn:active{transform:scale(.98);}
+  .btn:disabled{
+    opacity:.3;
+    box-shadow:none;
+    cursor:not-allowed;
+  }
+
+  /* ---------- welcome ---------- */
+  .welcome .avatar-big{
+    width:64px; height:64px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #6fe89a, var(--green));
+    color:#0a0a0a;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:26px;
+    margin-bottom:20px;
+    overflow:hidden;
+  }
+  .welcome .avatar-big img{width:100%; height:100%; object-fit:cover;}
+  .welcome h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    line-height:1.25;
+    letter-spacing:-0.01em;
+    margin-bottom:14px;
+  }
+  .welcome h1 span{color:var(--green);}
+  .welcome p{
+    font-size:15px;
+    color:var(--muted);
+    line-height:1.6;
+    margin-bottom:6px;
+  }
+
+  /* ---------- sucesso ---------- */
+  .success .check{
+    width:56px; height:56px;
+    border-radius:50%;
+    background:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:22px;
+    box-shadow:0 0 30px rgba(23,166,83,.35);
+  }
+  .success .check svg{width:26px; height:26px;}
+  .success h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:26px;
+    margin-bottom:14px;
+    line-height:1.3;
+  }
+  .success p{
+    font-size:15px;
+    color:var(--muted);
+    line-height:1.65;
+    margin-bottom:10px;
+    max-width:92%;
+  }
+  .success .sign{
+    margin-top:22px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--green);
+  }
+
+  @media (max-width:380px){
+    .bubble p{font-size:19px;}
+    .welcome h1{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="progress" id="progress"></div>
+  <div class="header hidden" id="header">
+    <div class="avatar" id="avatar">G</div>
+    <div class="header-name">Diagnóstico com <b>Gustavo</b></div>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="footer" id="footer"></div>
+</div>
+
+<script>
+/* ======================================================================
+   CONFIGURAÇÃO
+   Cole a URL do Web App do Apps Script entre as aspas (termina em /exec).
+   Enquanto vazia, o formulário funciona mas não salva (só avisa no console).
+====================================================================== */
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby6rs3f0f5xzmICETbtZTzPMWEMeMrBPGmkAN87jMqgDxqo9igvIZAGMXWh5vB4oE4aFQ/exec";
+const GUSTAVO_PHOTO_URL = ""; // URL da foto real do Gustavo, quando tiver
+
+/* ====================================================================== */
+
+const TOTAL_STEPS = 8;
+
+const state = {
+  id:"", nome:"", whatsapp:"", clinica:"", cargo:"",
+  tempo:"", faturamento:"", desafio:"", prontidao:"",
+  status:"Em andamento"
+};
+
+const stageEl   = document.getElementById('stage');
+const footerEl  = document.getElementById('footer');
+const headerEl  = document.getElementById('header');
+const avatarEl  = document.getElementById('avatar');
+const progressEl= document.getElementById('progress');
+
+if(GUSTAVO_PHOTO_URL){
+  avatarEl.innerHTML = `<img src="${GUSTAVO_PHOTO_URL}" alt="Gustavo">`;
+}
+
+/* progresso */
+for(let i=0;i<TOTAL_STEPS;i++){
+  const seg = document.createElement('div');
+  seg.className='seg';
+  seg.innerHTML='<i></i>';
+  progressEl.appendChild(seg);
+}
+function setProgress(n){
+  progressEl.querySelectorAll('.seg').forEach((s,i)=> s.classList.toggle('done', i<n));
+}
+
+/* salvar */
+function save(){
+  if(!WEBHOOK_URL){ console.warn("WEBHOOK_URL vazia — não salvou.", {...state}); return; }
+  fetch(WEBHOOK_URL,{
+    method:"POST", mode:"no-cors",
+    headers:{"Content-Type":"text/plain"},
+    body:JSON.stringify(state)
+  }).catch(e=>console.error("Erro ao salvar:",e));
+}
+
+/* ----------------------------------------------------------------------
+   paint(stageHTML, footerHTML, {progress, header, onReady})
+   Monta a tela do zero. Sem IDs compartilhados entre telas porque o
+   conteúdo anterior é totalmente substituído antes de criar o novo.
+---------------------------------------------------------------------- */
+function paint(stageHTML, footerHTML, opts={}){
+  const {progress=null, header=true, onReady=null} = opts;
+
+  headerEl.classList.toggle('hidden', !header);
+  if(progress!==null) setProgress(progress);
+
+  // fade-out rápido do conteúdo atual
+  const oldScreen = stageEl.querySelector('.screen');
+  const swap = ()=>{
+    stageEl.innerHTML = `<div class="screen">${stageHTML}</div>`;
+    footerEl.innerHTML = footerHTML;
+    const screen = stageEl.querySelector('.screen');
+    // força reflow e mostra
+    void screen.offsetHeight;
+    requestAnimationFrame(()=> screen.classList.add('show'));
+    if(onReady) onReady(screen, footerEl);
+  };
+
+  if(oldScreen){
+    oldScreen.classList.remove('show');
+    setTimeout(swap, 180);
+  } else {
+    swap();
+  }
+}
+
+/* ----------------------------- telas ----------------------------- */
+
+function screenWelcome(){
+  paint(`
+    <div class="welcome">
+      <div class="avatar-big" id="avatarBig">G</div>
+      <h1>Antes da gente <span>conversar</span></h1>
+      <p>eu preciso entender um pouco do momento da sua clínica.</p>
+      <p>São só algumas perguntas rápidas — leva menos de 2 minutos.</p>
+    </div>
+  `,`
+    <button class="btn" id="cta">Começar diagnóstico</button>
+  `,{
+    header:false, progress:0,
+    onReady:(screen,footer)=>{
+      if(GUSTAVO_PHOTO_URL){
+        screen.querySelector('#avatarBig').innerHTML = `<img src="${GUSTAVO_PHOTO_URL}" alt="Gustavo">`;
+      }
+      footer.querySelector('#cta').onclick = screenNome;
+    }
+  });
+}
+
+function screenNome(){
+  paint(`
+    <div class="bubble"><p>Pra começar, como você se chama?</p></div>
+    <input type="text" id="field" placeholder="Seu nome" autocomplete="off">
+  `,`
+    <button class="btn" id="cta" disabled>Continuar</button>
+  `,{
+    progress:0,
+    onReady:(screen,footer)=>{
+      const input = screen.querySelector('#field');
+      const cta = footer.querySelector('#cta');
+      setTimeout(()=>input.focus(),50);
+      input.addEventListener('input',()=> cta.disabled = input.value.trim().length<2);
+      input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!cta.disabled) go(); });
+      cta.onclick = go;
+      function go(){ state.nome = input.value.trim(); screenWhatsapp(); }
+    }
+  });
+}
+
+function screenWhatsapp(){
+  const primeiro = state.nome.split(' ')[0];
+  paint(`
+    <div class="bubble"><p>Perfeito, ${primeiro}! Qual seu WhatsApp?</p><div class="sub">É por ele que eu vou te chamar.</div></div>
+    <input type="tel" id="field" placeholder="(00) 00000-0000" autocomplete="off">
+  `,`
+    <button class="btn" id="cta" disabled>Continuar</button>
+  `,{
+    progress:1,
+    onReady:(screen,footer)=>{
+      const input = screen.querySelector('#field');
+      const cta = footer.querySelector('#cta');
+      setTimeout(()=>input.focus(),50);
+      input.addEventListener('input',()=>{
+        input.value = formatPhone(input.value);
+        cta.disabled = input.value.replace(/\D/g,'').length<10;
+      });
+      input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!cta.disabled) go(); });
+      cta.onclick = go;
+      function go(){
+        state.whatsapp = input.value.trim();
+        state.id = input.value.replace(/\D/g,'');
+        save(); // primeiro salvamento — a partir daqui o lead não se perde
+        screenClinica();
+      }
+    }
+  });
+}
+
+function formatPhone(v){
+  v = v.replace(/\D/g,'').slice(0,11);
+  if(v.length>6) return `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  if(v.length>2) return `(${v.slice(0,2)}) ${v.slice(2)}`;
+  return v;
+}
+
+function screenClinica(){
+  paint(`
+    <div class="bubble"><p>E qual o nome da sua clínica?</p></div>
+    <input type="text" id="field" placeholder="Nome da clínica" autocomplete="off">
+  `,`
+    <button class="btn" id="cta" disabled>Continuar</button>
+  `,{
+    progress:2,
+    onReady:(screen,footer)=>{
+      const input = screen.querySelector('#field');
+      const cta = footer.querySelector('#cta');
+      setTimeout(()=>input.focus(),50);
+      input.addEventListener('input',()=> cta.disabled = input.value.trim().length<2);
+      input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!cta.disabled) go(); });
+      cta.onclick = go;
+      function go(){ state.clinica = input.value.trim(); save(); screenCargo(); }
+    }
+  });
+}
+
+/* tela de opções genérica */
+function optionScreen({question, sub, field, options, progress, next}){
+  const opts = options.map(o=>`<button class="opt" data-val="${o}">${o}</button>`).join('');
+  paint(`
+    <div class="bubble"><p>${question}</p>${sub?`<div class="sub">${sub}</div>`:''}</div>
+    <div class="options">${opts}</div>
+  `,`
+    <button class="btn" id="cta" disabled>Continuar</button>
+  `,{
+    progress,
+    onReady:(screen,footer)=>{
+      const cta = footer.querySelector('#cta');
+      let selected = null;
+      screen.querySelectorAll('.opt').forEach(o=>{
+        o.onclick = ()=>{
+          screen.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+          o.classList.add('selected');
+          selected = o.dataset.val;
+          cta.disabled = false;
+        };
+      });
+      cta.onclick = ()=>{ state[field] = selected; save(); next(); };
+    }
+  });
+}
+
+function screenCargo(){
+  optionScreen({
+    question:"Me conta: qual é o seu papel aí na clínica?",
+    field:"cargo", progress:3,
+    options:["Sou dono(a)","Sou sócio(a)","Sou gerente ou gestor(a)","Sou investidor(a)","Quero abrir uma clínica","Outro"],
+    next:screenTempo
+  });
+}
+function screenTempo(){
+  optionScreen({
+    question:"Há quanto tempo essa clínica existe?",
+    field:"tempo", progress:4,
+    options:["Ainda vou abrir","Menos de 1 ano","1 a 3 anos","3 a 5 anos","Mais de 5 anos"],
+    next:screenFaturamento
+  });
+}
+function screenFaturamento(){
+  optionScreen({
+    question:"Hoje, quanto sua clínica fatura por mês, mais ou menos?",
+    field:"faturamento", progress:5,
+    options:["R$0 a 20 mil","R$20 a 50 mil","R$50 a 80 mil","R$80 a 120 mil","R$120 a 200 mil","Mais de R$200 mil"],
+    next:screenDesafio
+  });
+}
+function screenDesafio(){
+  optionScreen({
+    question:"Se você pudesse resolver UMA coisa na sua clínica agora, qual seria?",
+    field:"desafio", progress:6,
+    options:["Atrair mais pacientes","Aumentar o faturamento","Organizar a gestão e os processos","Formar e liderar minha equipe","Sair da operação","Outro"],
+    next:screenProntidao
+  });
+}
+function screenProntidao(){
+  optionScreen({
+    question:"Última coisa: o quão pronto você está pra dar esse próximo passo?",
+    field:"prontidao", progress:7,
+    options:["Pronto pra começar já","Quero entender melhor antes","Só pesquisando por enquanto"],
+    next:screenSucesso
+  });
+}
+
+function screenSucesso(){
+  state.status = "Completo";
+  save();
+  setProgress(8);
+  const primeiro = state.nome.split(' ')[0];
+  paint(`
+    <div class="success">
+      <div class="check">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h1>Pronto, ${primeiro}!</h1>
+      <p>Agora irei analisar as suas respostas, e em breve entrarei em contato!</p>
+      <div class="sign">— Gustavo</div>
+    </div>
+  `,``,{ progress:8 });
+}
+
+/* start */
+screenWelcome();
+</script>
+
+</body>
+</html>
